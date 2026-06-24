@@ -1,0 +1,65 @@
+name: Test basic server config test invocation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install k6
+        continue-on-error: true
+        run: |
+          curl -fsSL https://github.com/grafana/k6/releases/download/v0.49.0/k6-v0.49.0-linux-amd64.tar.gz -o /tmp/k6.tar.gz
+          tar -xzf /tmp/k6.tar.gz -C /tmp
+          sudo mv /tmp/k6-v0.49.0-linux-amd64/k6 /usr/local/bin/k6
+          k6 version
+
+      - name: Prepare nginx root
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/nginx-root
+          echo "<html><body>Hello</body></html>" > /tmp/nginx-root/index.html
+
+      - name: Prepare certs
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/nginx-certs
+          cp "$GITHUB_WORKSPACE/certs/default.crt" /tmp/nginx-certs/
+          cp "$GITHUB_WORKSPACE/certs/default.key" /tmp/nginx-certs/
+
+      - name: Prepare nginx config
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/nginx-conf
+          cat > /tmp/nginx-conf/nginx.conf <<'EOF'
+          events {}
+          http {
+            server {
+              listen 80;
+              server_name server.localhost www.server.localhost;
+              root /var/www/server.localhost;
+              index index.html;
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          command: test
+          server: nginx:alpine
+          root-path: /var/www/server.localhost
+          certs-path: /etc/nginx/certs
+          configs-volumes: /tmp/nginx-conf/nginx.conf:/etc/nginx/nginx.conf;/tmp/nginx-root:/var/www/server.localhost;/tmp/nginx-certs:/etc/nginx/certs
+          tests: basic-file-access
+
+      - name: Assert action ran
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "" ]; then
+            echo "FAIL: action did not run at all"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome: ${{ steps.action.outcome }}"

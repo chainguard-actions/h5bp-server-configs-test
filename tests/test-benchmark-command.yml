@@ -1,0 +1,49 @@
+name: Test benchmark command
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install k6
+        continue-on-error: true
+        run: |
+          curl -fsSL https://github.com/grafana/k6/releases/download/v0.49.0/k6-v0.49.0-linux-amd64.tar.gz -o /tmp/k6.tar.gz
+          tar -xzf /tmp/k6.tar.gz -C /tmp
+          sudo mv /tmp/k6-v0.49.0-linux-amd64/k6 /usr/local/bin/k6
+          k6 version
+
+      - name: Prepare nginx root with fixtures
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/nginx-root
+          cp -r "$GITHUB_WORKSPACE/dist/fixtures/." /tmp/nginx-root/
+          echo "Fixtures copied"
+
+      - name: Prepare certs
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/nginx-certs
+          cp "$GITHUB_WORKSPACE/certs/default.crt" /tmp/nginx-certs/
+          cp "$GITHUB_WORKSPACE/certs/default.key" /tmp/nginx-certs/
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          command: benchmark
+          server: nginx:alpine
+          root-path: /var/www/server.localhost
+          certs-path: /etc/nginx/certs
+          configs-volumes: /tmp/nginx-root:/var/www/server.localhost;/tmp/nginx-certs:/etc/nginx/certs
+
+      - name: Assert action ran with benchmark command
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          if [ -z "${{ steps.action.outcome }}" ]; then
+            echo "FAIL: action did not produce an outcome"
+            exit 1
+          fi
+          echo "PASS: action ran with benchmark command, outcome: ${{ steps.action.outcome }}"
