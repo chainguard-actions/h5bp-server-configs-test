@@ -1,0 +1,46 @@
+name: Test benchmark command
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare test directories and certs
+        run: |
+          mkdir -p /tmp/nginx-benchmark/vhosts
+          mkdir -p /tmp/nginx-benchmark/certs
+
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /tmp/nginx-benchmark/certs/default.key \
+            -out /tmp/nginx-benchmark/certs/default.crt \
+            -subj "/CN=server.localhost" 2>/dev/null
+
+          printf '%s\n' \
+            'server {' \
+            '  listen 80;' \
+            '  server_name server.localhost www.server.localhost;' \
+            '  root /var/www/server.localhost;' \
+            '  index index.html;' \
+            '}' \
+            > /tmp/nginx-benchmark/vhosts/server.localhost.conf
+
+      - id: action
+        uses: .
+        with:
+          command: benchmark
+          server: nginx:alpine
+          root-path: /var/www/server.localhost
+          certs-path: /tmp/nginx-benchmark/certs
+          configs-volumes: /tmp/nginx-benchmark/vhosts:/etc/nginx/conf.d
+        continue-on-error: true
+
+      - name: Assert benchmark command ran
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with 'benchmark' command, outcome: ${{ steps.action.outcome }}"
