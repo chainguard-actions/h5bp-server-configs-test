@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| 8.2.2 | [`8.2.2`](https://github.com/chainguard-actions/h5bp-server-configs-test/tree/8.2.2) | [`28f8349`](https://github.com/h5bp/server-configs-test/commit/28f8349e573af0f47f2d06c8910d77c427257bdf) |
 | 8.2.3 | [`8.2.3`](https://github.com/chainguard-actions/h5bp-server-configs-test/tree/8.2.3) | [`7c685a7`](https://github.com/h5bp/server-configs-test/commit/7c685a7b419af1602928e3c0002e71b1df5e53c3) |
 
 ## Privacy
