@@ -4,8 +4,13 @@
   "version": "8.2.3",
   "commit_sha": "7c685a7b419af1602928e3c0002e71b1df5e53c3",
   "url": "https://github.com/h5bp/server-configs-test",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
-  "test_agent_version": "1",
-  "harden_agent_version": "1"
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/h5bp/server-configs-test/8.2.3/sha256-cdf284d87b65726f583a4325085580c1a15181466b66f3146d83c01da132a19e.tar.gz",
+    "sha256": "cdf284d87b65726f583a4325085580c1a15181466b66f3146d83c01da132a19e",
+    "size_bytes": 896003
+  }
 }
